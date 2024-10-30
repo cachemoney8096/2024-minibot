@@ -14,13 +14,13 @@ public class RobotMap {
   //       BACK_RIGHT_STEERING_MOTOR_CAN_ID = 15;
 
   /** Driving Motor CAN IDs */
-  public static final int FRONT_LEFT_DRIVE_MOTOR_CAN_ID = 13,
+  public static final int FRONT_LEFT_DRIVE_MOTOR_CAN_ID = 4,
       FRONT_RIGHT_DRIVE_MOTOR_CAN_ID = 3,
-      BACK_LEFT_DRIVE_MOTOR_CAN_ID = 8,
-      BACK_RIGHT_DRIVE_MOTOR_CAN_ID = 7;
+      BACK_LEFT_DRIVE_MOTOR_CAN_ID = 7,
+      BACK_RIGHT_DRIVE_MOTOR_CAN_ID = 8;
 
   /** Steering Motor CAN IDs */
-  public static final int FRONT_LEFT_STEERING_MOTOR_CAN_ID = 4,
+  public static final int FRONT_LEFT_STEERING_MOTOR_CAN_ID = 13,
       FRONT_RIGHT_STEERING_MOTOR_CAN_ID = 19,
       BACK_LEFT_STEERING_MOTOR_CAN_ID = 11,
       BACK_RIGHT_STEERING_MOTOR_CAN_ID = 15;

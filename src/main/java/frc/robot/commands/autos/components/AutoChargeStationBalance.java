@@ -1,6 +1,7 @@
 package frc.robot.commands.autos.components;
 
-import com.ctre.phoenix.sensors.WPI_Pigeon2;
+import com.ctre.phoenix6.hardware.Pigeon2;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -9,7 +10,7 @@ import frc.robot.subsystems.drive.DriveSubsystem;
 
 public class AutoChargeStationBalance extends Command {
   private final DriveSubsystem drive;
-  private final WPI_Pigeon2 gyro;
+  private final Pigeon2 gyro;
   private final double NOT_MOVING_IN_Y = 0;
   private final double NOT_ROTATING = 0;
   private final boolean ROBOT_RELATIVE = false;
@@ -25,7 +26,7 @@ public class AutoChargeStationBalance extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double pitchDeg = gyro.getPitch();
+    double pitchDeg = gyro.getPitch().getValueAsDouble();
 
     /** Velocity is [-1,1] */
     double normVelocity =
