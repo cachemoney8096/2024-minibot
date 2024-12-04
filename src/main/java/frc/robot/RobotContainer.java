@@ -81,7 +81,7 @@ public class RobotContainer {
    * <p>Borrowed from 3005.
    */
   public void burnFlashSparks() {
-    Timer.delay(0.25);
+    Timer.delay(0.5);
     drive.burnFlashSparks();
   }
 
