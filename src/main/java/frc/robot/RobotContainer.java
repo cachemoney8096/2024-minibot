@@ -102,10 +102,10 @@ public class RobotContainer {
         new RunCommand(
                 () ->
                     drive.rotateOrKeepHeading(
-                        MathUtil.applyDeadband(-driverController.getRightY(), 0.1),
-                        MathUtil.applyDeadband(-driverController.getRightX(), 0.1),
+                        MathUtil.applyDeadband(-driverController.getLeftY(), 0.1),
+                        MathUtil.applyDeadband(-driverController.getLeftX(), 0.1),
                         JoystickUtil.squareAxis(
-                            MathUtil.applyDeadband(-driverController.getLeftX(), 0.05)),
+                            MathUtil.applyDeadband(-driverController.getRightX(), 0.05)),
                         true, // always field relative
                         driverController.getHID().getPOV()),
                 drive)

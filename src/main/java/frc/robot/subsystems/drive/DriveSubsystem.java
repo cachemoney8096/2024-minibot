@@ -348,6 +348,8 @@ public class DriveSubsystem extends SubsystemBase {
       targetHeadingDegrees = convertCardinalDirections(povAngleDeg);
       keepHeading(x, y, fieldRelative);
     } else if (rot == 0) {
+      //double targetHeadingError = targetHeadingDegrees-getHeadingDegrees();
+      targetHeadingDegrees = getHeadingDegrees();
       keepHeading(x, y, fieldRelative);
     } else {
       targetHeadingDegrees = getHeadingDegrees();
