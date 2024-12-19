@@ -59,7 +59,6 @@ public class Robot extends TimedRobot {
 
     CommandScheduler.getInstance().cancelAll();
 
-    m_robotContainer.arm.armMotor.setIdleMode(IdleMode.kCoast);
     m_robotContainer.drive.frontLeft.turningSparkMax.setIdleMode(IdleMode.kCoast);
     m_robotContainer.drive.frontRight.turningSparkMax.setIdleMode(IdleMode.kCoast);
     m_robotContainer.drive.backLeft.turningSparkMax.setIdleMode(IdleMode.kCoast);
@@ -68,7 +67,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void disabledPeriodic() {
-    m_robotContainer.arm.armMotor.setIdleMode(IdleMode.kCoast);
     m_robotContainer.drive.frontLeft.turningSparkMax.setIdleMode(IdleMode.kCoast);
     m_robotContainer.drive.frontRight.turningSparkMax.setIdleMode(IdleMode.kCoast);
     m_robotContainer.drive.backLeft.turningSparkMax.setIdleMode(IdleMode.kCoast);
@@ -91,7 +89,6 @@ public class Robot extends TimedRobot {
       m_robotContainer.timedMatch = false;
     }
 
-    m_robotContainer.arm.armMotor.setIdleMode(IdleMode.kBrake);
     m_robotContainer.drive.frontLeft.turningSparkMax.setIdleMode(
         ModuleConstants.TURNING_MOTOR_IDLE_MODE);
     m_robotContainer.drive.frontRight.turningSparkMax.setIdleMode(
@@ -125,7 +122,6 @@ public class Robot extends TimedRobot {
       m_robotContainer.timedMatch = false;
     }
 
-    m_robotContainer.arm.armMotor.setIdleMode(IdleMode.kBrake);
     m_robotContainer.drive.frontLeft.turningSparkMax.setIdleMode(
         ModuleConstants.TURNING_MOTOR_IDLE_MODE);
     m_robotContainer.drive.frontRight.turningSparkMax.setIdleMode(
@@ -135,7 +131,6 @@ public class Robot extends TimedRobot {
     m_robotContainer.drive.backRight.turningSparkMax.setIdleMode(
         ModuleConstants.TURNING_MOTOR_IDLE_MODE);
     
-    m_robotContainer.arm.initControlLoop();
   }
 
   /** This function is called periodically during operator control. */

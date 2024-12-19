@@ -15,10 +15,10 @@ public class DriveConstants {
   /** Chassis configuration */
 
   /** Distance between centers of right and left wheels on robot */
-  public static final double TRACK_WIDTH_METERS = Units.inchesToMeters(7.5);
+  public static final double TRACK_WIDTH_METERS = Units.inchesToMeters(26.0);
 
   /** Distance between front and back wheels on robot */
-  public static final double WHEEL_BASE_METERS = Units.inchesToMeters(14.5);
+  public static final double WHEEL_BASE_METERS = Units.inchesToMeters(26.0);
 
   public static final SwerveDriveKinematics DRIVE_KINEMATICS =
       new SwerveDriveKinematics(

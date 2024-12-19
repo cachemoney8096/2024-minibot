@@ -4,9 +4,8 @@
 
 package frc.robot.subsystems.drive;
 
-import com.ctre.phoenix.sensors.Pigeon2.AxisDirection;
-import com.fasterxml.jackson.databind.ser.impl.ReadOnlyClassToSerializerMap;
-import com.ctre.phoenix.sensors.WPI_Pigeon2;
+import com.ctre.phoenix6.configs.Pigeon2Configuration;
+import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -23,20 +22,15 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotMap;
-import frc.robot.subsystems.Lights;
 import frc.robot.utils.GeometryUtils;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 
 public class DriveSubsystem extends SubsystemBase {
   private double targetHeadingDegrees;
-
-  private Lights lights;
 
   // Create SwerveModules
   public final SwerveModule frontLeft =
@@ -64,7 +58,7 @@ public class DriveSubsystem extends SubsystemBase {
           DriveCal.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET_RAD);
 
   // The gyro sensor
-  private final WPI_Pigeon2 gyro = new WPI_Pigeon2(RobotMap.PIGEON_CAN_ID);
+  private final Pigeon2 gyro = new Pigeon2(RobotMap.PIGEON_CAN_ID);
   private ChassisSpeeds lastSetChassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
   public Optional<Pose2d> targetPose = Optional.empty();
   public boolean generatedPath = false;
@@ -82,11 +76,9 @@ public class DriveSubsystem extends SubsystemBase {
   private BooleanSupplier isTimedMatch;
 
   /** Creates a new DriveSubsystem. */
-  public DriveSubsystem(Lights lightsSubsystem, BooleanSupplier isTimedMatchFunc) {
-    gyro.configFactoryDefault();
+  public DriveSubsystem(BooleanSupplier isTimedMatchFunc) {
+    gyro.getConfigurator().apply(new Pigeon2Configuration());
     gyro.reset();
-    gyro.configMountPose(AxisDirection.PositiveY, AxisDirection.PositiveZ);
-    lights = lightsSubsystem;
     isTimedMatch = isTimedMatchFunc;
   }
 
@@ -103,14 +95,14 @@ public class DriveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    latestFilteredPitchDeg = pitchFilter.calculate(gyro.getPitch());
+    latestFilteredPitchDeg = pitchFilter.calculate(gyro.getPitch().getValueAsDouble());
 
     // Update the odometry in the periodic block
     frontLeft.periodic();
     frontRight.periodic();
     backLeft.periodic();
     backRight.periodic();
-    odometry.update(Rotation2d.fromDegrees(gyro.getYaw()), getModulePositions());
+    odometry.update(Rotation2d.fromDegrees(gyro.getYaw().getValueAsDouble()), getModulePositions());
   }
 
   public SwerveModulePosition[] getModulePositions() {
@@ -156,12 +148,12 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void resetOdometry(Pose2d pose) {
     // Just update the translation, not the yaw
-    Pose2d resetPose = new Pose2d(pose.getTranslation(), Rotation2d.fromDegrees(gyro.getYaw()));
-    odometry.resetPosition(Rotation2d.fromDegrees(gyro.getYaw()), getModulePositions(), resetPose);
+    Pose2d resetPose = new Pose2d(pose.getTranslation(), Rotation2d.fromDegrees(gyro.getYaw().getValueAsDouble()));
+    odometry.resetPosition(Rotation2d.fromDegrees(gyro.getYaw().getValueAsDouble()), getModulePositions(), resetPose);
   }
 
   public void resetYawToAngle(double yawDeg) {
-    double curYawDeg = gyro.getYaw();
+    double curYawDeg = gyro.getYaw().getValueAsDouble();
     double offsetToTargetDeg = targetHeadingDegrees - curYawDeg;
     gyro.setYaw(yawDeg);
     Pose2d curPose = getPose();
@@ -244,7 +236,7 @@ public class DriveSubsystem extends SubsystemBase {
     ChassisSpeeds desiredChassisSpeeds =
         fieldRelative
             ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                xSpeed, ySpeed, rot, Rotation2d.fromDegrees(gyro.getYaw()))
+                xSpeed, ySpeed, rot, Rotation2d.fromDegrees(gyro.getYaw().getValueAsDouble()))
             : new ChassisSpeeds(xSpeed, ySpeed, rot);
 
     desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds);
@@ -263,7 +255,6 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Sets the wheels into an X formation to prevent movement. */
   public void setX() {
-    lights.setPartyMode();
     frontLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
     frontRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
     backLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
@@ -299,7 +290,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeadingDegrees() {
-    return Rotation2d.fromDegrees(gyro.getYaw()).getDegrees();
+    return Rotation2d.fromDegrees(gyro.getYaw().getValueAsDouble()).getDegrees();
   }
 
   /**
@@ -357,6 +348,8 @@ public class DriveSubsystem extends SubsystemBase {
       targetHeadingDegrees = convertCardinalDirections(povAngleDeg);
       keepHeading(x, y, fieldRelative);
     } else if (rot == 0) {
+      //double targetHeadingError = targetHeadingDegrees-getHeadingDegrees();
+      targetHeadingDegrees = getHeadingDegrees();
       keepHeading(x, y, fieldRelative);
     } else {
       targetHeadingDegrees = getHeadingDegrees();
@@ -371,7 +364,7 @@ public class DriveSubsystem extends SubsystemBase {
     backRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
   }
 
-  public WPI_Pigeon2 getGyro() {
+  public Pigeon2 getGyro() {
     return gyro;
   }
 
@@ -495,7 +488,7 @@ public class DriveSubsystem extends SubsystemBase {
           return targetHeadingDegrees;
         },
         null);
-    builder.addDoubleProperty("Gyro Yaw (deg)", gyro::getYaw, null);
+    builder.addDoubleProperty("Gyro Yaw (deg)", ()->gyro.getYaw().getValueAsDouble(), null);
     builder.addDoubleProperty("Odometry X (m)", () -> getPose().getX(), null);
     builder.addDoubleProperty("Odometry Y (m)", () -> getPose().getY(), null);
     builder.addDoubleProperty(

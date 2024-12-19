@@ -23,10 +23,10 @@ public class DriveCal {
    * Angular offset of the modules relative to the zeroing fixture in radians. Ideally should be
    * relative to the ficture but they are actually slightly different.
    */
-  public static double SWERVE_FRONT_LEFT_ANGULAR_OFFSET_RAD = 3.575,
-      SWERVE_FRONT_RIGHT_ANGULAR_OFFSET_RAD = 1.177,
-      SWERVE_BACK_LEFT_ANGULAR_OFFSET_RAD = 5.235,
-      SWERVE_BACK_RIGHT_ANGULAR_OFFSET_RAD = 4.677;
+  public static double SWERVE_FRONT_LEFT_ANGULAR_OFFSET_RAD = 2.790,
+      SWERVE_FRONT_RIGHT_ANGULAR_OFFSET_RAD = 3.243 - Math.PI,
+      SWERVE_BACK_LEFT_ANGULAR_OFFSET_RAD = 4.444,
+      SWERVE_BACK_RIGHT_ANGULAR_OFFSET_RAD = 3.856  - Math.PI;
 
   /**
    * Angular offsets of the modules relative to the chassis in radians. The modules form an O when

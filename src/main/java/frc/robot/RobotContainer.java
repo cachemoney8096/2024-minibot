@@ -9,23 +9,15 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.FinishScore;
-import frc.robot.commands.IntakeSequence;
-import frc.robot.subsystems.ClawLimelight;
-import frc.robot.subsystems.Lights;
-import frc.robot.subsystems.TagLimelight;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.Arm.ArmPosition;
-import frc.robot.subsystems.drive.DriveCal;
 import frc.robot.subsystems.drive.DriveSubsystem;
 import frc.robot.subsystems.grabber.Grabber;
 import frc.robot.utils.JoystickUtil;
@@ -58,13 +50,7 @@ public class RobotContainer {
                 driverController.getHID().setRumble(RumbleType.kBothRumble, 0.0);
               }));
 
-  private final ScoringLocationUtil scoreLoc = new ScoringLocationUtil();
-  public Arm arm = new Arm(scoreLoc);
-  private ClawLimelight clawLimelight = new ClawLimelight();
-  private Grabber grabber = new Grabber(rumbleBriefly);
-  private Lights lights = new Lights();
-  private TagLimelight tagLimelight = new TagLimelight();
-  public DriveSubsystem drive = new DriveSubsystem(lights, () -> timedMatch);
+  public DriveSubsystem drive = new DriveSubsystem(() -> timedMatch);
 
   // A chooser for autonomous commands
   private SendableChooser<Command> autonChooser = new SendableChooser<>();
@@ -74,44 +60,12 @@ public class RobotContainer {
     // Configure the trigger bindings
     configureBindings();
 
-    Shuffleboard.getTab("Subsystems").add(arm.getName(), arm);
-    Shuffleboard.getTab("Subsystems").add(clawLimelight.getName(), clawLimelight);
-    Shuffleboard.getTab("Subsystems").add(grabber.getName(), grabber);
-    Shuffleboard.getTab("Subsystems").add(lights.getName(), lights);
-    Shuffleboard.getTab("Subsystems").add(tagLimelight.getName(), tagLimelight);
     Shuffleboard.getTab("Subsystems").add(drive.getName(), drive);
   }
 
   public void initialize() {
-    arm.initialize();
-    grabber.initialize();
     drive.initialize();
-    autonChooser.setDefaultOption("Nothing", new RunCommand(() -> {}, drive, arm));
-
     drive.initSparks();
-    arm.initSparks();
-    grabber.initSparks();
-
-    // Put the chooser on the dashboard
-    SmartDashboard.putData(autonChooser);
-
-    // Put the buttons for zeroing the mechanisms on the dashboard
-    SmartDashboard.putData(
-        "Zero Arm Based on Current Pos",
-        new InstantCommand(arm::zeroArmAtCurrentPos, arm).ignoringDisable(true));
-    SmartDashboard.putData(
-        "Zero Front Left Based on Current Pos",
-        new InstantCommand(drive::zeroFrontLeftAtCurrentPos, drive).ignoringDisable(true));
-    SmartDashboard.putData(
-        "Zero Front Right Based on Current Pos",
-        new InstantCommand(drive::zeroFrontRightAtCurrentPos, drive).ignoringDisable(true));
-    SmartDashboard.putData(
-        "Zero Rear Left Based on Current Pos",
-        new InstantCommand(drive::zeroBackLeftAtCurrentPos, drive).ignoringDisable(true));
-    SmartDashboard.putData(
-        "Zero Rear Right Based on Current Pos",
-        new InstantCommand(drive::zeroBackRightAtCurrentPos, drive).ignoringDisable(true));
-
     burnFlashSparks();
   }
 
@@ -127,10 +81,8 @@ public class RobotContainer {
    * <p>Borrowed from 3005.
    */
   public void burnFlashSparks() {
-    Timer.delay(0.25);
-    arm.burnFlashSparks();
+    Timer.delay(0.5);
     drive.burnFlashSparks();
-    grabber.burnFlashSparks();
   }
 
   /**
@@ -143,88 +95,17 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    driverController
-        .rightBumper()
-        .onTrue(
-            new InstantCommand(
-                    () -> {
-                      scoreLoc.setScoreHeight(ScoreHeight.LOW);
-                    })
-                .ignoringDisable(true));
-
-    // driverController
-    //     .y()
-    //     .onTrue(
-    //         new InstantCommand(
-    //                 () -> {
-    //                   scoreLoc.setScoreHeight(ScoreHeight.MID);
-    //                 })
-    //             .ignoringDisable(true));
-
-    // driverController
-    //     .b()
-    //     .onTrue(
-    //         new InstantCommand(
-    //                 () -> {
-    //                   scoreLoc.setScoreHeight(ScoreHeight.HIGH);
-    //                 })
-    //             .ignoringDisable(true));
-
-    driverController.start().onTrue(new InstantCommand(lights::setPartyMode, lights));
-
+    
     driverController.back().onTrue(new InstantCommand(drive::resetYaw, drive));
-
-    driverController
-        .leftTrigger()
-        .whileTrue(
-            IntakeSequence.interruptibleIntakeSequence(arm, grabber, lights)
-                .beforeStarting(
-                    new InstantCommand(
-                        () -> {
-                          drive.throttle(DriveCal.THROTTLE_FOR_INTAKING);
-                        }))
-                .finallyDo(
-                    (boolean interrupted) -> {
-                      drive.throttle(1.0);
-                    }));
-
-    driverController.leftBumper().onTrue(new InstantCommand(arm::cancelScore, arm));
-
-    driverController
-        .a()
-        .onTrue(
-            new InstantCommand(
-                () -> {
-                  arm.goToPosition(ArmPosition.STARTING);
-                }));
-    driverController
-        .x()
-        .onTrue(
-            new InstantCommand(
-                () -> {
-                  arm.goToPosition(ArmPosition.SCORE_MID_HIGH);
-                }));
-    driverController.y().whileTrue(
-      new RunCommand(grabber::intake).finallyDo((boolean interrupted) -> {grabber.stopMotors();})
-    );
-
-    driverController.rightTrigger().onTrue(new InstantCommand(arm::startScore, arm));
-    driverController
-        .rightTrigger()
-        .onFalse(
-            new ConditionalCommand(
-                new InstantCommand(() -> arm.setCancelScore(false)),
-                new FinishScore(arm, grabber, lights),
-                arm::getCancelScore));
 
     drive.setDefaultCommand(
         new RunCommand(
                 () ->
                     drive.rotateOrKeepHeading(
-                        MathUtil.applyDeadband(-driverController.getRightY(), 0.1),
-                        MathUtil.applyDeadband(-driverController.getRightX(), 0.1),
+                        MathUtil.applyDeadband(-driverController.getLeftY(), 0.1),
+                        MathUtil.applyDeadband(-driverController.getLeftX(), 0.1),
                         JoystickUtil.squareAxis(
-                            MathUtil.applyDeadband(-driverController.getLeftX(), 0.05)),
+                            MathUtil.applyDeadband(-driverController.getRightX(), 0.05)),
                         true, // always field relative
                         driverController.getHID().getPOV()),
                 drive)
